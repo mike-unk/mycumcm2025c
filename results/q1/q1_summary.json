@@ -1,0 +1,32 @@
+{
+  "records_input": 1082,
+  "sampling_events": 1064,
+  "patients": 267,
+  "technical_records_collapsed": 18,
+  "mixed_model_converged": true,
+  "gee_converged": true,
+  "aic": 802.8767415262573,
+  "bic": 887.3631829145843,
+  "random_intercept_variance": 0.17387036451378468,
+  "residual_variance": 0.06566537596879454,
+  "marginal_r2": 0.15870564510725965,
+  "conditional_r2": 0.7693709088958522,
+  "likelihood_ratio_tests": {
+    "overall_week": {
+      "chi2": 300.99644551551955,
+      "df": 4,
+      "p_value": 6.604802842329324e-64
+    },
+    "bmi_nonlinearity": {
+      "chi2": 12.773423947949595,
+      "df": 3,
+      "p_value": 0.00515311214147298
+    },
+    "week_bmi_interaction": {
+      "chi2": 2.929295620603625,
+      "df": 4,
+      "p_value": 0.5697264821717479
+    }
+  },
+  "gee_dependence_parameter": 0.7489593396008505
+}
