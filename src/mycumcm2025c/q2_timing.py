@@ -26,7 +26,10 @@ COLORS = {
     "ink": "#252525",
 }
 TAU = 0.70
-MIN_GROUP_SIZE = 45
+MIN_GROUP_SIZE = 54
+MIN_BMI_WIDTH = 2.0
+BMI_GRID_STEP = 0.5
+FOUR_GROUP_IMPROVEMENT = 0.05
 FAILURE_COST = 6.0
 WEEK_GRID = np.arange(11.0, 25.0 + 1e-9, 1.0 / 7.0)
 
@@ -102,9 +105,28 @@ def segment_cost(prefix: np.ndarray, prefix_sq: np.ndarray, i: int, j: int) -> f
     return max(0.0, float(total_sq - total * total / n))
 
 
-def valid_cut_positions(sorted_trends: pd.DataFrame) -> set[int]:
+def candidate_boundaries(sorted_trends: pd.DataFrame) -> dict[int, float]:
     bmi = sorted_trends["bmi"].to_numpy()
-    return {i for i in range(1, len(bmi)) if bmi[i - 1] < bmi[i]}
+    candidates: dict[int, float] = {}
+    used: set[float] = set()
+    for i in range(1, len(bmi)):
+        if bmi[i - 1] >= bmi[i]:
+            continue
+        midpoint = (bmi[i - 1] + bmi[i]) / 2
+        boundary = round(midpoint / BMI_GRID_STEP) * BMI_GRID_STEP
+        if not (bmi[i - 1] < boundary <= bmi[i]) or boundary in used:
+            continue
+        candidates[i] = boundary
+        used.add(boundary)
+    return candidates
+
+
+def partition_edges(sorted_trends: pd.DataFrame) -> dict[int, float]:
+    boundaries = candidate_boundaries(sorted_trends)
+    bmi = sorted_trends["bmi"].to_numpy()
+    boundaries[0] = math.floor(bmi[0] / BMI_GRID_STEP) * BMI_GRID_STEP
+    boundaries[len(bmi)] = math.ceil(bmi[-1] / BMI_GRID_STEP) * BMI_GRID_STEP
+    return boundaries
 
 
 def dynamic_partition(
@@ -116,19 +138,21 @@ def dynamic_partition(
     n = len(values)
     prefix = np.r_[0.0, np.cumsum(values)]
     prefix_sq = np.r_[0.0, np.cumsum(values * values)]
-    valid = valid_cut_positions(data)
+    edges = partition_edges(data)
     dp = np.full((k + 1, n + 1), np.inf)
     parent = np.full((k + 1, n + 1), -1, dtype=int)
     dp[0, 0] = 0.0
     for groups in range(1, k + 1):
         low_j = groups * min_group_size
         for j in range(low_j, n + 1):
-            if j < n and j not in valid:
+            if j not in edges:
                 continue
             low_i = (groups - 1) * min_group_size
             high_i = j - min_group_size
             for i in range(low_i, high_i + 1):
-                if groups > 1 and i not in valid:
+                if i not in edges:
+                    continue
+                if edges[j] - edges[i] < MIN_BMI_WIDTH - 1e-12:
                     continue
                 candidate = dp[groups - 1, i] + segment_cost(prefix, prefix_sq, i, j)
                 if candidate < dp[groups, j]:
@@ -148,27 +172,30 @@ def select_partition(trends: pd.DataFrame) -> tuple[int, list[int], pd.DataFrame
     records = []
     solutions: dict[int, list[int]] = {}
     n = len(trends)
-    for k in range(2, 6):
+    for k in (3, 4):
         cost, cuts = dynamic_partition(trends, k)
         bic = n * math.log(max(cost / n, 1e-12)) + 2 * k * math.log(n)
         records.append({"groups": k, "heterogeneity": cost, "bic": bic})
         solutions[k] = cuts
     comparison = pd.DataFrame(records)
-    eligible = comparison[comparison["groups"].isin([3, 4])]
-    chosen_k = int(eligible.loc[eligible["bic"].idxmin(), "groups"])
+    d3 = float(comparison.loc[comparison["groups"] == 3, "heterogeneity"].iloc[0])
+    d4 = float(comparison.loc[comparison["groups"] == 4, "heterogeneity"].iloc[0])
+    improvement = (d3 - d4) / d3
+    comparison["relative_improvement_from_3"] = [0.0, improvement]
+    chosen_k = 4 if improvement >= FOUR_GROUP_IMPROVEMENT else 3
     return chosen_k, solutions[chosen_k], comparison
 
 
 def assign_groups(trends: pd.DataFrame, cuts: list[int]) -> tuple[pd.DataFrame, pd.DataFrame]:
     data = trends.sort_values(["bmi", "patient_id"]).reset_index(drop=True).copy()
+    edges = partition_edges(data)
     data["group"] = 0
     rows = []
     for group_id, (start, stop) in enumerate(zip(cuts[:-1], cuts[1:]), start=1):
         data.loc[start : stop - 1, "group"] = group_id
         lo = float(data.loc[start:stop - 1, "bmi"].min())
         hi = float(data.loc[start:stop - 1, "bmi"].max())
-        next_lo = float(data.loc[stop, "bmi"]) if stop < len(data) else np.inf
-        boundary = (hi + next_lo) / 2 if np.isfinite(next_lo) else np.inf
+        boundary = edges[stop] if stop < len(data) else np.inf
         rows.append(
             {
                 "group": group_id,
@@ -273,7 +300,7 @@ def choose_timing(frame: pd.DataFrame, model: dict[str, float]) -> tuple[float, 
             }
         )
     curve = pd.DataFrame(rows)
-    optimum = float(curve.loc[curve["total_risk"].idxmin(), "week"])
+    optimum = round(float(curve.loc[curve["total_risk"].idxmin(), "week"]), 6)
     return optimum, curve
 
 
@@ -491,16 +518,14 @@ def create_figures(result: dict[str, object], events: pd.DataFrame, error: pd.Da
 
 def format_group_intervals(groups: pd.DataFrame) -> pd.DataFrame:
     output = groups.copy()
-    lower = -np.inf
+    lower = float(groups.iloc[0]["observed_bmi_min"])
     labels = []
     for row in output.itertuples(index=False):
         upper = row.upper_boundary
-        if np.isneginf(lower):
-            labels.append(f"(-inf, {upper:.2f})")
-        elif np.isposinf(upper):
-            labels.append(f"[{lower:.2f}, +inf)")
+        if np.isposinf(upper):
+            labels.append(f"[{lower:.1f}, +inf)")
         else:
-            labels.append(f"[{lower:.2f}, {upper:.2f})")
+            labels.append(f"[{lower:.1f}, {upper:.1f})")
         lower = upper
     output["bmi_interval"] = labels
     return output
@@ -541,6 +566,9 @@ def run(project_root: Path, repetitions: int = 100, seed: int = 202509) -> dict[
         "patients": int(events["patient_id"].nunique()),
         "chosen_groups": int(baseline["chosen_k"]),
         "minimum_group_size": MIN_GROUP_SIZE,
+        "minimum_bmi_width": MIN_BMI_WIDTH,
+        "bmi_grid_step": BMI_GRID_STEP,
+        "four_group_improvement_threshold": FOUR_GROUP_IMPROVEMENT,
         "quantile": TAU,
         "failure_cost": FAILURE_COST,
         "pregnancy_risk_slopes": [1, 3, 6],
