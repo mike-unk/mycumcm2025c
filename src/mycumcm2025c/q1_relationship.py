@@ -5,9 +5,9 @@ from __future__ import annotations
 import argparse
 import json
 import math
-import sys
 from pathlib import Path
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -40,6 +40,8 @@ CONTROLS = [
     "filtered_ratio",
     "log_raw_reads",
 ]
+
+PLOT_COLORS = ["#0F6BBD", "#F26F21", "#9ECAE1", "#083C5F", "#7F8C8D"]
 
 CONTROL_TERMS = " + ".join([f"{name}_z" for name in CONTROLS] + ["assisted_conception"])
 WEEK_SPLINE = "cr(gestational_weeks, df=4, constraints='center')"
@@ -204,17 +206,39 @@ def key_prediction_table(grid: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def _setup_plot_style(project_root: Path) -> list[str]:
-    skill_scripts = project_root / ".agents/skills/cumcm-step-review/scripts"
-    sys.path.insert(0, str(skill_scripts))
-    from plot_style import JOURNAL_PALETTES, apply_publication_style
+def configure_plot_style() -> list[str]:
+    """Apply a self-contained publication style without external skill files."""
+    mpl.rcParams.update(
+        {
+            "font.family": "sans-serif",
+            "font.sans-serif": [
+                "Noto Sans CJK SC",
+                "Source Han Sans SC",
+                "Microsoft YaHei",
+                "SimHei",
+                "SimSun",
+                "DejaVu Sans",
+            ],
+            "axes.unicode_minus": False,
+            "font.size": 9.5,
+            "axes.labelsize": 10.0,
+            "xtick.labelsize": 8.5,
+            "ytick.labelsize": 8.5,
+            "legend.fontsize": 8.5,
+            "axes.linewidth": 0.6,
+            "lines.linewidth": 1.0,
+            "lines.markersize": 4.0,
+            "axes.spines.top": False,
+            "axes.spines.right": False,
+            "figure.constrained_layout.use": True,
+            "savefig.dpi": 300,
+        }
+    )
+    return PLOT_COLORS
 
-    apply_publication_style(journal="nature", lang="zh")
-    return JOURNAL_PALETTES["nature"]["main"]
 
-
-def create_figures(events: pd.DataFrame, grid: pd.DataFrame, result: object, output_dir: Path, project_root: Path) -> None:
-    colors = _setup_plot_style(project_root)
+def create_figures(events: pd.DataFrame, grid: pd.DataFrame, result: object, output_dir: Path) -> None:
+    colors = configure_plot_style()
     output_dir.mkdir(parents=True, exist_ok=True)
 
     fig, ax = plt.subplots(figsize=(5.9, 3.8))
@@ -235,11 +259,14 @@ def create_figures(events: pd.DataFrame, grid: pd.DataFrame, result: object, out
     labels = ["Y浓度", "孕周", "BMI", "年龄", "GC", "比对率", "重复率", "过滤率"]
     corr = events[corr_columns].corr(method="spearman")
     fig, ax = plt.subplots(figsize=(5.9, 4.9))
-    image = ax.imshow(corr, vmin=-1, vmax=1, cmap="RdBu_r")
+    upper_triangle = np.triu(np.ones_like(corr, dtype=bool), k=0)
+    masked_corr = np.ma.array(corr.to_numpy(), mask=upper_triangle)
+    off_diagonal_limit = float(np.abs(corr.to_numpy()[~np.eye(len(corr), dtype=bool)]).max())
+    image = ax.imshow(masked_corr, vmin=-off_diagonal_limit, vmax=off_diagonal_limit)
     ax.set_xticks(range(len(labels)), labels, rotation=45, ha="right")
     ax.set_yticks(range(len(labels)), labels)
     for i in range(len(labels)):
-        for j in range(len(labels)):
+        for j in range(i):
             ax.text(j, i, f"{corr.iloc[i, j]:.2f}", ha="center", va="center", fontsize=7.5)
     fig.colorbar(image, ax=ax, label="Spearman 相关系数")
     fig.savefig(output_dir / "raw_q1_correlation_heatmap.png", dpi=300, bbox_inches="tight")
@@ -297,24 +324,31 @@ def create_figures(events: pd.DataFrame, grid: pd.DataFrame, result: object, out
     plt.close(fig)
 
 
-def create_significance_figure(comparisons: dict[str, dict[str, float]], output_dir: Path, project_root: Path) -> None:
-    colors = _setup_plot_style(project_root)
+def create_significance_figure(comparisons: dict[str, dict[str, float]], output_dir: Path) -> None:
+    colors = configure_plot_style()
     labels = ["孕周", "BMI", "孕周×BMI"]
     keys = ["overall_week", "bmi_nonlinearity", "week_bmi_interaction"]
     values = [-math.log10(max(comparisons[key]["p_value"], 1e-300)) for key in keys]
+    display_values = np.minimum(values, 12.0)
     fig, ax = plt.subplots(figsize=(5.9, 3.6))
-    bars = ax.barh(labels, values, color=[colors[0], colors[1], colors[4]])
+    positions = np.arange(len(labels))
+    ax.hlines(positions, 0, display_values, color="#C7CDD4", linewidth=1.2)
+    ax.scatter(display_values, positions, color=[colors[0], colors[1], colors[4]], s=34, zorder=3)
     ax.axvline(-math.log10(0.05), color="#555555", linestyle="--", linewidth=0.9)
+    ax.set_yticks(positions, labels)
     ax.set(xlabel="-log10(P)", ylabel="联合检验项")
-    for bar, key in zip(bars, keys):
+    for position, value, key in zip(positions, display_values, keys):
         p_value = comparisons[key]["p_value"]
         text = f"P={p_value:.3g}" if p_value >= 0.001 else "P<0.001"
-        ax.text(bar.get_width() + 0.5, bar.get_y() + bar.get_height() / 2, text, va="center", fontsize=8.5)
+        if p_value >= 0.05:
+            ax.text(value - 0.15, position, text, ha="right", va="center", fontsize=8.5)
+        else:
+            ax.text(value + 0.5, position, text, va="center", fontsize=8.5)
     fig.savefig(output_dir / "result_q1_joint_significance.png", dpi=300, bbox_inches="tight")
     plt.close(fig)
 
 
-def run(input_path: Path, results_dir: Path, figures_dir: Path, project_root: Path) -> dict[str, object]:
+def run(input_path: Path, results_dir: Path, figures_dir: Path) -> dict[str, object]:
     records = pd.read_csv(input_path)
     events = aggregate_sampling_events(records)
     results_dir.mkdir(parents=True, exist_ok=True)
@@ -343,8 +377,8 @@ def run(input_path: Path, results_dir: Path, figures_dir: Path, project_root: Pa
     grid = prediction_grid(events, main)
     grid.to_csv(results_dir / "q1_effect_curves.csv", index=False)
     key_prediction_table(grid).to_csv(results_dir / "q1_key_predictions.csv", index=False)
-    create_figures(events, grid, main, figures_dir, project_root)
-    create_significance_figure(comparisons, figures_dir, project_root)
+    create_figures(events, grid, main, figures_dir)
+    create_significance_figure(comparisons, figures_dir)
 
     fixed_prediction = np.asarray(main.model.exog) @ main.fe_params.to_numpy()
     var_fixed = float(np.var(fixed_prediction, ddof=1))
@@ -376,8 +410,7 @@ def main() -> None:
     parser.add_argument("--results-dir", type=Path, default=Path("results/q1"))
     parser.add_argument("--figures-dir", type=Path, default=Path("figures"))
     args = parser.parse_args()
-    project_root = Path(__file__).resolve().parents[2]
-    summary = run(args.input, args.results_dir, args.figures_dir, project_root)
+    summary = run(args.input, args.results_dir, args.figures_dir)
     print(json.dumps(summary, ensure_ascii=False, indent=2))
 
 
