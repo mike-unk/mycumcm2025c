@@ -1,0 +1,96 @@
+%! TEX program = xelatex
+
+\documentclass[withoutpreface,bwprint]{cumcmthesis}
+
+\usepackage[most]{tcolorbox}
+\usepackage{tikz}
+\usepackage{cumcm2026}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+
+\title{LATEX_TEMPLATE_TITLE}
+
+\begin{document}
+
+\maketitle
+
+% ============================================================
+% 摘要
+% ============================================================
+
+\begin{abstract}
+
+  LATEX_TEMPLATE_ABSTRACT
+
+  \keywords{LATEX_TEMPLATE_KEYWORDS}
+
+\end{abstract}
+
+% ============================================================
+% 正文
+% ============================================================
+
+\section{问题重述}
+
+LATEX_TEMPLATE_BODY
+
+% 公式规范（硬性）：
+%   - 行间公式必须用编号环境 equation / align（公式居中、编号右对齐，LaTeX 自动处理）；
+%   - 禁止 \[...\]、equation*、align*、手写 \tag；
+%   - 正文用 \eqref{eq:...} 引用；公式出现后解释每个符号。
+
+\section{问题分析}
+
+LATEX_TEMPLATE_BODY
+
+\section{模型假设与符号说明}
+
+LATEX_TEMPLATE_BODY
+
+\section{数据预处理}
+
+LATEX_TEMPLATE_BODY
+
+% 逐问建模与求解：按题目子问题数量展开，每问一节；子问题只有两个时删除多余小节。
+% 每问包含：建模思路 → 数学表达 → 求解方法 → 结果 → 图表 + 紧随其后的分析。
+
+\section{问题一建模与求解}
+
+LATEX_TEMPLATE_BODY
+
+\section{问题二建模与求解}
+
+LATEX_TEMPLATE_BODY
+
+\section{问题三建模与求解}
+
+LATEX_TEMPLATE_BODY
+
+% 如果题目没有第四问，则删除该节
+\section{问题四建模与求解}
+LATEX_TEMPLATE_BODY
+
+\section{模型的分析与检验}
+
+LATEX_TEMPLATE_BODY
+
+\section{模型的评价与推广}
+
+LATEX_TEMPLATE_BODY
+
+\CumcmAIUsed{[简要用途, 如语言润色, 代码调试等]}
+
+\bibliographystyle{gbt7714-numerical}
+\bibliography{refs}
+
+% 附录：支撑材料文件列表
+
+\begin{appendices}
+
+  \section{附录}
+
+  LATEX_TEMPLATE_BODY
+
+\end{appendices}
+
+\end{document}

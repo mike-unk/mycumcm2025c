@@ -1,0 +1,31 @@
+[project]
+name = "mycumcm2025c"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "mike-unk", email = "mike_unk@outlook.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "lxml>=6.1.3",
+    "matplotlib>=3.10.9",
+    "numpy>=2.2.6",
+    "openpyxl>=3.1.5",
+    "pandas>=2.3.3",
+    "pdfplumber>=0.11.10",
+    "pillow>=12.3.0",
+    "pypdf>=6.16.2",
+    "python-docx>=1.2.0",
+    "scikit-learn>=1.7.2",
+    "scipy>=1.15.3",
+    "seaborn>=0.13.2",
+    "statsmodels>=0.15.0",
+]
+
+[project.scripts]
+mycumcm2025c = "mycumcm2025c:main"
+
+[build-system]
+requires = ["uv_build>=0.12.9,<0.13.0"]
+build-backend = "uv_build"
