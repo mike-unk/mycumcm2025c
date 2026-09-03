@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio" version="31.3.2">
+  <diagram id="q2-flow" name="Page-1">
+    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="1654" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" value="输入：267 名男胎孕妇&#xa;首次 BMI 与达标时间删失区间" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#DCEAF7;strokeColor=#3978A8;fontColor=#252525;fontSize=14;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="380" y="30" width="340" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="3" value="分别拟合 Weibull 与 Log-logistic&#xa;BMI 单因素区间删失 AFT 模型" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEAF7;strokeColor=#3978A8;fontColor=#252525;fontSize=14;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="380" y="150" width="340" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="4" value="按 AIC 选择分布&#xa;计算各 BMI、各候选孕周的预期风险" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEAF7;strokeColor=#3978A8;fontColor=#252525;fontSize=14;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="380" y="270" width="340" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="5" value="对 K=1,…,6 执行有序动态规划&#xa;约束每组不少于 30 人" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEAF7;strokeColor=#3978A8;fontColor=#252525;fontSize=14;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="380" y="390" width="340" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="6" value="增加一组后的&#xa;相对风险降幅 &lt; 1%？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF1C7;strokeColor=#B98518;fontColor=#252525;fontSize=14;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="440" y="510" width="220" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="7" value="取满足条件的最小 K&#xa;输出连续 BMI 界限与各组最优时点" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DCEAF7;strokeColor=#3978A8;fontColor=#252525;fontSize=14;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="380" y="680" width="340" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="8" value="技术重复误差扰动&#xa;重拟合与重分组" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EEF3F5;strokeColor=#6F7F86;fontColor=#252525;fontSize=13;spacing=7;" vertex="1" parent="1">
+          <mxGeometry x="80" y="830" width="260" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="9" value="达标阈值与失败代价&#xa;灵敏度分析" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EEF3F5;strokeColor=#6F7F86;fontColor=#252525;fontSize=13;spacing=7;" vertex="1" parent="1">
+          <mxGeometry x="420" y="830" width="260" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="10" value="Turnbull 离散 NPMLE&#xa;非参数对照" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EEF3F5;strokeColor=#6F7F86;fontColor=#252525;fontSize=13;spacing=7;" vertex="1" parent="1">
+          <mxGeometry x="760" y="830" width="260" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="11" value="汇总基准方案与稳健性结论" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#DCEAF7;strokeColor=#3978A8;fontColor=#252525;fontSize=14;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="380" y="990" width="340" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="20" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#59666C;strokeWidth=1.4;endArrow=blockThin;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="2" target="3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="21" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#59666C;strokeWidth=1.4;endArrow=blockThin;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="3" target="4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="22" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#59666C;strokeWidth=1.4;endArrow=blockThin;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="4" target="5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="23" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#59666C;strokeWidth=1.4;endArrow=blockThin;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="5" target="6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="24" value="是" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#59666C;strokeWidth=1.4;endArrow=blockThin;endFill=1;fontSize=12;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="6" target="7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="25" value="否：考察 K+1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#59666C;strokeWidth=1.4;endArrow=blockThin;endFill=1;fontSize=12;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="6" target="5">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="780" y="565" />
+              <mxPoint x="780" y="425" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="26" value="复核" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#59666C;strokeWidth=1.4;endArrow=blockThin;endFill=1;fontSize=12;labelBackgroundColor=#FFFFFF;exitX=0.25;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="7" target="8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="27" value="复核" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#59666C;strokeWidth=1.4;endArrow=blockThin;endFill=1;fontSize=12;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="7" target="9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="28" value="复核" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#59666C;strokeWidth=1.4;endArrow=blockThin;endFill=1;fontSize=12;labelBackgroundColor=#FFFFFF;exitX=0.75;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="7" target="10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="29" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#59666C;strokeWidth=1.4;endArrow=blockThin;endFill=1;exitX=0.5;exitY=1;entryX=0.25;entryY=0;" edge="1" parent="1" source="8" target="11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="30" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#59666C;strokeWidth=1.4;endArrow=blockThin;endFill=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="9" target="11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="31" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#59666C;strokeWidth=1.4;endArrow=blockThin;endFill=1;exitX=0.5;exitY=1;entryX=0.75;entryY=0;" edge="1" parent="1" source="10" target="11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

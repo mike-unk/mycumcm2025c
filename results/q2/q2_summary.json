@@ -1,0 +1,52 @@
+{
+  "patients": 267,
+  "censoring_counts": {
+    "left": 217,
+    "interval": 43,
+    "right": 7
+  },
+  "selected_distribution": "loglogistic",
+  "aft_models": {
+    "weibull": {
+      "aic": 366.5229634213895,
+      "converged": true
+    },
+    "loglogistic": {
+      "aic": 363.5071996474653,
+      "converged": true
+    }
+  },
+  "failure_cost": 2.0,
+  "minimum_group_size": 30,
+  "selected_group_count": 2,
+  "mean_risk": 0.5571523108453554,
+  "groups": [
+    {
+      "group": 1,
+      "start_index": 0,
+      "end_index": 203,
+      "n": 203,
+      "bmi_min": 20.703125,
+      "bmi_max": 33.40920489,
+      "boundary_after": 33.411452741852145,
+      "optimal_week": 11.999999999999993,
+      "total_risk": 104.21441480038152,
+      "mean_risk": 0.5133715014797119
+    },
+    {
+      "group": 2,
+      "start_index": 203,
+      "end_index": 267,
+      "n": 64,
+      "bmi_min": 33.4137005937043,
+      "bmi_max": 46.875,
+      "boundary_after": null,
+      "optimal_week": 20.28571428571425,
+      "total_risk": 44.54525219532839,
+      "mean_risk": 0.6960195655520061
+    }
+  ],
+  "measurement_sd": 0.0047336048100781675,
+  "simulations_requested": 50,
+  "simulations_completed": 50
+}
