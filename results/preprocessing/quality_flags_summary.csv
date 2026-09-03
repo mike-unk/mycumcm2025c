@@ -1,0 +1,16 @@
+﻿check,scope_records,affected_records,affected_pct,action
+qc_ratio_invalid,1687,0,0.0,flagged; retained in canonical records
+qc_gc_outside_40_60,1687,671,39.7747,flagged; retained in canonical records
+qc_read_count_conflict,1687,71,4.2087,flagged; retained in canonical records
+qc_bmi_reported_missing,1687,1,0.0593,flagged; retained in canonical records
+qc_bmi_mismatch,1687,0,0.0,flagged; retained in canonical records
+qc_gestational_age_invalid,1687,0,0.0,flagged; retained in canonical records
+qc_outside_test_window,1687,24,1.4226,flagged; retained in canonical records
+qc_test_date_unparsed,1687,0,0.0,flagged; retained in canonical records
+qc_lmp_date_missing,1687,20,1.1855,flagged; retained in canonical records
+qc_lmp_date_unparsed,1687,0,0.0,flagged; retained in canonical records
+qc_date_gestation_mismatch,1687,262,15.5305,flagged; retained in canonical records
+qc_missing_core_measurement,1687,0,0.0,flagged; retained in canonical records
+qc_exact_duplicate_except_sample_id,1687,0,0.0,flagged; retained in canonical records
+technical_replicate_records,1687,66,3.9123,retained; linked by sampling_event_id
+technical_replicate_discordant_events,1064,4,0.3759,retained for measurement-error analysis

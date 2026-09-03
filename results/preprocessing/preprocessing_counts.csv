@@ -1,0 +1,6 @@
+﻿stage,before,after,note
+raw male records,1082,1082,retained; quality flags added
+raw female records,605,605,retained; quality flags added
+all records,1687,1687,no automatic row deletion
+male sampling events,1082,1064,technical replicates linked
+male patient event histories,267,267,one row per patient

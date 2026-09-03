@@ -1,0 +1,55 @@
+{
+  "input": "附件.xlsx",
+  "sheets": {
+    "male": {
+      "records": 1082,
+      "patients": 267
+    },
+    "female": {
+      "records": 605,
+      "patients": 147
+    }
+  },
+  "date_range": {
+    "test_min": "2023-01-01",
+    "test_max": "2024-07-08"
+  },
+  "gestational_week_range": [
+    11.0,
+    29.0
+  ],
+  "male_sampling_events": 1064,
+  "male_event_histories": 267,
+  "censoring_counts": {
+    "left": 217,
+    "interval": 43,
+    "right": 7
+  },
+  "nonmonotonic_patients": 35,
+  "female_target_counts": {
+    "T13": 23,
+    "T18": 46,
+    "T21": 13,
+    "any": 67
+  },
+  "female_healthy_birth_unique": [
+    "是"
+  ],
+  "quality_flags": {
+    "qc_ratio_invalid": 0,
+    "qc_gc_outside_40_60": 671,
+    "qc_read_count_conflict": 71,
+    "qc_bmi_reported_missing": 1,
+    "qc_bmi_mismatch": 0,
+    "qc_gestational_age_invalid": 0,
+    "qc_outside_test_window": 24,
+    "qc_test_date_unparsed": 0,
+    "qc_lmp_date_missing": 20,
+    "qc_lmp_date_unparsed": 0,
+    "qc_date_gestation_mismatch": 262,
+    "qc_missing_core_measurement": 0,
+    "qc_exact_duplicate_except_sample_id": 0,
+    "technical_replicate_records": 66,
+    "technical_replicate_discordant_events": 4
+  }
+}
