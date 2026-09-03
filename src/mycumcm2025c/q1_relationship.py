@@ -309,6 +309,22 @@ def create_figures(events: pd.DataFrame, grid: pd.DataFrame, result: object, out
     ax.set_aspect("equal")
     ax.set_xticks(range(len(labels)), labels, rotation=45, ha="right")
     ax.set_yticks(range(len(labels)), labels)
+    for index, column in enumerate(corr_columns):
+        counts, _ = np.histogram(events[column].dropna().to_numpy(), bins=10)
+        heights = 0.72 * counts / max(counts.max(), 1)
+        bar_width = 0.78 / len(counts)
+        for bin_index, height in enumerate(heights):
+            left = index - 0.39 + bin_index * bar_width
+            rectangle = plt.Rectangle(
+                (left, index + 0.39 - height),
+                bar_width * 0.90,
+                height,
+                facecolor=colors["sky"],
+                edgecolor="white",
+                linewidth=0.25,
+                alpha=0.82,
+            )
+            ax.add_patch(rectangle)
     for i in range(len(labels)):
         for j in range(i):
             value = corr.iloc[i, j]
