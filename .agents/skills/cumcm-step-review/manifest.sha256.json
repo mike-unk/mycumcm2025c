@@ -9,13 +9,13 @@
   },
   {
    "path": "SKILL.md",
-   "sha256": "c325ecd4d9f510d93ea10acc6e2fcd51af9537cfb208fc83cbb190d7f7eb9c6b",
-   "bytes": 15208
+   "sha256": "4dcbdb0b134f22c35f8df0e2eac2b0e6d92006922dd13fae6f0d660cb054fa8c",
+   "bytes": 21216
   },
   {
    "path": "迁移与依赖说明.md",
-   "sha256": "cd89400999053bcbf2d1605caa8e605f1e41f5b02c51e60a9d91d82c72b38f24",
-   "bytes": 4024
+   "sha256": "6d1dec92f31ed827d512f80e262df368a72d25f0056e0ab8330baba30a422426",
+   "bytes": 4034
   },
   {
    "path": "agents\\openai.yaml",
@@ -209,13 +209,13 @@
   },
   {
    "path": "references\\质检清单.md",
-   "sha256": "b11befc5efdd0cd959a2160c610a4efb9066fad9ee048431a6dfbf454db57200",
-   "bytes": 8744
+   "sha256": "26b3a5f0e5a7430c535113b82ba7d5a33ccce6c53eaddef13cb98ec99dbf24a6",
+   "bytes": 8731
   },
   {
    "path": "references\\阶段流程.md",
-   "sha256": "0def83fec902a9d28ca8b6156de6137c01570c7e0372f5bbb109dcf45c3f6198",
-   "bytes": 17359
+   "sha256": "4fd990116f7cf1d0ae7eb07641de56d85c004fa451e738505b01c26b37480f17",
+   "bytes": 17195
   },
   {
    "path": "references\\roles\\建模手\\前置合同.md",
@@ -479,8 +479,8 @@
   },
   {
    "path": "tools\\README.md",
-   "sha256": "87c5eb209e8d9ff5a5fd74740cf9327914ccaf8b0c0f4627be815a74fe38549c",
-   "bytes": 1429
+   "sha256": "b754f1df872ee3c4d741b49d4079a79b02d5dd43d3e233bfd4f3058ee2bca64a",
+   "bytes": 1460
   },
   {
    "path": "tools\\update_star_history.py",
