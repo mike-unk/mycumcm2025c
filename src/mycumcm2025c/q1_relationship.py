@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
+from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
 from scipy import stats
 from statsmodels.genmod.cov_struct import Exchangeable
 from statsmodels.genmod.families import Gaussian
@@ -41,7 +42,21 @@ CONTROLS = [
     "log_raw_reads",
 ]
 
-PLOT_COLORS = ["#0F6BBD", "#F26F21", "#9ECAE1", "#083C5F", "#7F8C8D"]
+PLOT_COLORS = {
+    "blue": "#0072B2",
+    "orange": "#E69F00",
+    "green": "#009E73",
+    "vermillion": "#D55E00",
+    "sky": "#56B4E9",
+    "magenta": "#CC79A7",
+    "grey": "#7A8588",
+    "light_grey": "#C7CDD4",
+    "ink": "#252525",
+}
+CORRELATION_CMAP = LinearSegmentedColormap.from_list(
+    "association", ["#2F6B8A", "#F7F7F5", "#C75B39"]
+)
+DENSITY_CMAP = mpl.colormaps["cividis"]
 
 CONTROL_TERMS = " + ".join([f"{name}_z" for name in CONTROLS] + ["assisted_conception"])
 WEEK_SPLINE = "cr(gestational_weeks, df=4, constraints='center')"
@@ -206,7 +221,7 @@ def key_prediction_table(grid: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def configure_plot_style() -> list[str]:
+def configure_plot_style() -> dict[str, str]:
     """Apply a self-contained publication style without external skill files."""
     mpl.rcParams.update(
         {
@@ -242,40 +257,87 @@ def create_figures(events: pd.DataFrame, grid: pd.DataFrame, result: object, out
     output_dir.mkdir(parents=True, exist_ok=True)
 
     fig, ax = plt.subplots(figsize=(5.9, 3.8))
-    hb = ax.hexbin(events["gestational_weeks"], 100 * events["y_fraction"], gridsize=28, mincnt=1, cmap="viridis")
+    hb = ax.hexbin(
+        events["gestational_weeks"],
+        100 * events["y_fraction"],
+        gridsize=28,
+        mincnt=1,
+        cmap=DENSITY_CMAP,
+    )
     ax.set(xlabel="孕周（周）", ylabel="Y 染色体浓度（%）")
     fig.colorbar(hb, ax=ax, label="采样事件数")
     fig.savefig(output_dir / "raw_q1_week_hexbin.png", dpi=300, bbox_inches="tight")
     plt.close(fig)
 
     fig, ax = plt.subplots(figsize=(5.9, 3.8))
-    hb = ax.hexbin(events["bmi_analysis"], 100 * events["y_fraction"], gridsize=28, mincnt=1, cmap="viridis")
+    bmi_bins = pd.qcut(events["bmi_analysis"], q=10, duplicates="drop")
+    binned = (
+        events.assign(bmi_bin=bmi_bins)
+        .groupby("bmi_bin", observed=True)
+        .agg(
+            bmi=("bmi_analysis", "median"),
+            y_median=("y_fraction", "median"),
+            y_q1=("y_fraction", lambda values: values.quantile(0.25)),
+            y_q3=("y_fraction", lambda values: values.quantile(0.75)),
+        )
+        .reset_index(drop=True)
+    )
+    ax.errorbar(
+        binned["bmi"],
+        100 * binned["y_median"],
+        yerr=np.vstack(
+            [100 * (binned["y_median"] - binned["y_q1"]), 100 * (binned["y_q3"] - binned["y_median"])]
+        ),
+        fmt="o-",
+        color=colors["vermillion"],
+        markerfacecolor="white",
+        markeredgewidth=1.1,
+        capsize=3,
+    )
     ax.set(xlabel="BMI（kg/m²）", ylabel="Y 染色体浓度（%）")
-    fig.colorbar(hb, ax=ax, label="采样事件数")
-    fig.savefig(output_dir / "raw_q1_bmi_hexbin.png", dpi=300, bbox_inches="tight")
+    fig.savefig(output_dir / "raw_q1_bmi_binned.png", dpi=300, bbox_inches="tight")
     plt.close(fig)
 
     corr_columns = ["y_fraction", "gestational_weeks", "bmi_analysis", "age_years", "gc_ratio", "mapping_ratio", "duplicate_ratio", "filtered_ratio"]
     labels = ["Y浓度", "孕周", "BMI", "年龄", "GC", "比对率", "重复率", "过滤率"]
     corr = events[corr_columns].corr(method="spearman")
     fig, ax = plt.subplots(figsize=(5.9, 4.9))
-    upper_triangle = np.triu(np.ones_like(corr, dtype=bool), k=0)
-    masked_corr = np.ma.array(corr.to_numpy(), mask=upper_triangle)
     off_diagonal_limit = float(np.abs(corr.to_numpy()[~np.eye(len(corr), dtype=bool)]).max())
-    image = ax.imshow(masked_corr, vmin=-off_diagonal_limit, vmax=off_diagonal_limit)
+    norm = TwoSlopeNorm(vmin=-off_diagonal_limit, vcenter=0, vmax=off_diagonal_limit)
+    ax.set_xlim(-0.5, len(labels) - 0.5)
+    ax.set_ylim(len(labels) - 0.5, -0.5)
+    ax.set_aspect("equal")
     ax.set_xticks(range(len(labels)), labels, rotation=45, ha="right")
     ax.set_yticks(range(len(labels)), labels)
     for i in range(len(labels)):
         for j in range(i):
-            ax.text(j, i, f"{corr.iloc[i, j]:.2f}", ha="center", va="center", fontsize=7.5)
-    fig.colorbar(image, ax=ax, label="Spearman 相关系数")
+            value = corr.iloc[i, j]
+            ax.scatter(
+                j,
+                i,
+                s=90 + 650 * abs(value) / off_diagonal_limit,
+                marker="s",
+                c=[value],
+                cmap=CORRELATION_CMAP,
+                norm=norm,
+                edgecolors="white",
+                linewidths=0.7,
+            )
+            ax.text(j, i, f"{value:.2f}", ha="center", va="center", fontsize=7.5, color=colors["ink"])
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+    ax.tick_params(length=0)
+    scalar = mpl.cm.ScalarMappable(norm=norm, cmap=CORRELATION_CMAP)
+    fig.colorbar(scalar, ax=ax, label="Spearman 相关系数", shrink=0.82)
     fig.savefig(output_dir / "raw_q1_correlation_heatmap.png", dpi=300, bbox_inches="tight")
     plt.close(fig)
 
     fig, ax = plt.subplots(figsize=(5.9, 3.8))
-    for color, bmi in zip(colors[:4], sorted(grid["bmi_analysis"].unique())):
+    curve_colors = [colors["blue"], colors["orange"], colors["green"], colors["vermillion"]]
+    line_styles = ["-", "--", "-.", ":"]
+    for color, line_style, bmi in zip(curve_colors, line_styles, sorted(grid["bmi_analysis"].unique())):
         subset = grid[grid["bmi_analysis"] == bmi]
-        ax.plot(subset["gestational_weeks"], 100 * subset["predicted_y_fraction"], color=color, label=f"BMI={bmi:g}")
+        ax.plot(subset["gestational_weeks"], 100 * subset["predicted_y_fraction"], color=color, linestyle=line_style, label=f"BMI={bmi:g}")
         ax.fill_between(subset["gestational_weeks"], 100 * subset["ci_low"], 100 * subset["ci_high"], color=color, alpha=0.12)
     ax.axhline(4, color="#555555", linestyle="--", linewidth=0.9)
     ax.set(xlabel="孕周（周）", ylabel="调整后 Y 染色体浓度（%）")
@@ -287,27 +349,42 @@ def create_figures(events: pd.DataFrame, grid: pd.DataFrame, result: object, out
     observed = events["logit_y"].to_numpy()
     residual = observed - fitted
     fig, ax = plt.subplots(figsize=(5.9, 3.8))
-    ax.scatter(_inverse_logit(fitted) * 100, residual, s=10, alpha=0.35, color=colors[0], edgecolors="none")
+    ax.scatter(_inverse_logit(fitted) * 100, residual, s=10, alpha=0.35, color=colors["blue"], edgecolors="none")
     ax.axhline(0, color="#555555", linestyle="--", linewidth=0.9)
     ax.set(xlabel="拟合 Y 染色体浓度（%）", ylabel="Logit 尺度残差")
     fig.savefig(output_dir / "process_q1_residuals.png", dpi=300, bbox_inches="tight")
     plt.close(fig)
 
-    fig, ax = plt.subplots(figsize=(5.9, 3.8))
+    fig = plt.figure(figsize=(5.9, 5.1))
+    layout = fig.add_gridspec(2, 2, height_ratios=[1, 4], width_ratios=[4, 1], hspace=0.06, wspace=0.06)
+    ax_top = fig.add_subplot(layout[0, 0])
+    ax = fig.add_subplot(layout[1, 0])
+    ax_right = fig.add_subplot(layout[1, 1])
     observed_percent = 100 * events["y_fraction"].to_numpy()
     fitted_percent = 100 * _inverse_logit(fitted)
-    ax.scatter(observed_percent, fitted_percent, s=10, alpha=0.35, color=colors[0], edgecolors="none")
+    ax.scatter(observed_percent, fitted_percent, s=11, alpha=0.34, color=colors["blue"], edgecolors="none")
     limits = [min(observed_percent.min(), fitted_percent.min()), max(observed_percent.max(), fitted_percent.max())]
-    ax.plot(limits, limits, color="#555555", linestyle="--", linewidth=0.9)
+    ax.plot(limits, limits, color=colors["grey"], linestyle="--", linewidth=0.9)
     ax.set(xlabel="观测 Y 染色体浓度（%）", ylabel="拟合 Y 染色体浓度（%）", xlim=limits, ylim=limits)
+    bins = np.linspace(limits[0], limits[1], 24)
+    ax_top.hist(observed_percent, bins=bins, color=colors["sky"], alpha=0.60, edgecolor="white")
+    ax_top.set_xlim(limits)
+    ax_top.tick_params(labelbottom=False, labelleft=False, length=0)
+    ax_top.spines["left"].set_visible(False)
+    ax_top.spines["bottom"].set_visible(False)
+    ax_right.hist(fitted_percent, bins=bins, orientation="horizontal", color=colors["orange"], alpha=0.65, edgecolor="white")
+    ax_right.set_ylim(limits)
+    ax_right.tick_params(labelbottom=False, labelleft=False, length=0)
+    ax_right.spines["left"].set_visible(False)
+    ax_right.spines["bottom"].set_visible(False)
     fig.savefig(output_dir / "process_q1_observed_fitted.png", dpi=300, bbox_inches="tight")
     plt.close(fig)
 
     fig, ax = plt.subplots(figsize=(5.9, 3.8))
     stats.probplot(residual, dist="norm", plot=ax)
     ax.set(xlabel="理论分位数", ylabel="残差分位数")
-    ax.get_lines()[0].set(color=colors[0], markersize=3, alpha=0.5)
-    ax.get_lines()[1].set(color=colors[1], linewidth=1)
+    ax.get_lines()[0].set(color=colors["blue"], markersize=3, alpha=0.5)
+    ax.get_lines()[1].set(color=colors["vermillion"], linewidth=1)
     fig.savefig(output_dir / "process_q1_qq.png", dpi=300, bbox_inches="tight")
     plt.close(fig)
 
@@ -316,7 +393,7 @@ def create_figures(events: pd.DataFrame, grid: pd.DataFrame, result: object, out
     selected = selected.sort_values("estimate")
     fig, ax = plt.subplots(figsize=(5.9, 3.8))
     y = np.arange(len(selected))
-    ax.errorbar(selected["estimate"], y, xerr=[selected["estimate"] - selected["ci_low"], selected["ci_high"] - selected["estimate"]], fmt="o", color=colors[0], ecolor=colors[2], capsize=2)
+    ax.errorbar(selected["estimate"], y, xerr=[selected["estimate"] - selected["ci_low"], selected["ci_high"] - selected["estimate"]], fmt="o", color=colors["blue"], ecolor=colors["sky"], capsize=2)
     ax.axvline(0, color="#555555", linestyle="--", linewidth=0.9)
     ax.set_yticks(y, selected["term"].str.replace("_z", "", regex=False))
     ax.set(xlabel="Logit 尺度回归系数", ylabel="校正变量")
@@ -332,8 +409,8 @@ def create_significance_figure(comparisons: dict[str, dict[str, float]], output_
     display_values = np.minimum(values, 12.0)
     fig, ax = plt.subplots(figsize=(5.9, 3.6))
     positions = np.arange(len(labels))
-    ax.hlines(positions, 0, display_values, color="#C7CDD4", linewidth=1.2)
-    ax.scatter(display_values, positions, color=[colors[0], colors[1], colors[4]], s=34, zorder=3)
+    ax.hlines(positions, 0, display_values, color=colors["light_grey"], linewidth=1.2)
+    ax.scatter(display_values, positions, color=[colors["blue"], colors["orange"], colors["grey"]], s=34, zorder=3)
     ax.axvline(-math.log10(0.05), color="#555555", linestyle="--", linewidth=0.9)
     ax.set_yticks(positions, labels)
     ax.set(xlabel="-log10(P)", ylabel="联合检验项")
